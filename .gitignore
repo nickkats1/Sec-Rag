@@ -35,6 +35,8 @@ profile.prof
 .idea/
 
 
+# pytest cache
+.pytest_cache/
 
 
 
