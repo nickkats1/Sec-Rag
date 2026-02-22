@@ -18,17 +18,20 @@ logger = logging.getLogger(__name__)
 
 RAG_PROMPT = PromptTemplate(
     input_variables=["question", "context"],
-    template=(
-        "Given the following context, answer the question as accurately as possible.\n"
-        "If you do not know the answer, say so. Do not make anything up.\n\n"
-        "Question: {question}\n\n"
-        "Context: {context}\n\n"
-        "Answer:"
-    ),
+    template="""
+    Given the following context, your task is to answer the question the best that you can.
+    If you do not know the answer, simply say you do not know. Do not make anything up.
+    
+    Question: {question}
+    
+    Context: {context}
+    
+    Answer""",
 )
 
 
 # --- Ingestion ---
+
 
 def load_documents(file_path: str) -> List[Document]:
     """Load PDF documents from a file or directory.
@@ -49,7 +52,9 @@ def load_documents(file_path: str) -> List[Document]:
     loader = (
         PyPDFLoader(str(path))
         if path.is_file()
-        else DirectoryLoader(str(path), glob="**/*.pdf", loader_cls=PyPDFLoader, show_progress=True)
+        else DirectoryLoader(
+            str(path), glob="**/*.pdf", loader_cls=PyPDFLoader, show_progress=True
+        )
     )
     documents = loader.load()
     logger.info("Loaded %d document(s) from '%s'", len(documents), file_path)
@@ -77,7 +82,9 @@ def chunk_documents(
     if not documents:
         raise ValueError("No documents provided")
     if chunk_overlap >= chunk_size:
-        raise ValueError(f"chunk_overlap ({chunk_overlap}) must be less than chunk_size ({chunk_size})")
+        raise ValueError(
+            f"chunk_overlap ({chunk_overlap}) must be less than chunk_size ({chunk_size})"
+        )
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
@@ -90,6 +97,7 @@ def chunk_documents(
 
 
 # --- Retriever ---
+
 
 def build_vector_store(
     chunks: List[Document],
@@ -114,11 +122,7 @@ def build_vector_store(
     return vector_store
 
 
-def build_retriever(
-    vector_store: Chroma,
-    search_type: str = "similarity",
-    k: int,
-) -> Any:
+def build_retriever(vector_store: Chroma, search_type: str, k: int) -> Any:
     """Create a retriever from a Chroma vector store.
 
     Args:
@@ -136,6 +140,7 @@ def build_retriever(
 
 
 # --- RAG ---
+
 
 def run_rag(
     question: str,

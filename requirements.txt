@@ -1,0 +1,13 @@
+chromadb
+langchain
+langchain-chroma
+langchain-classic
+langchain-community
+langchain-core
+langchain-openai
+langchain-text-splitters
+openai
+pypdf
+python-dotenv
+pytest
+tiktoken
