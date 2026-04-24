@@ -9,6 +9,12 @@ langchain-google-genai
 langchain-groq
 langchain-huggingface
 langchain-openai
+langchain-chroma
+langchain-classic
+langchain-community
+langchain-core
+langchain-openai
+langchain-text-splitters
 numpy
 openai
 pydantic
