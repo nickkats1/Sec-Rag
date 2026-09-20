@@ -16,47 +16,159 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "faiss-cpu",
-    "numpy",
-    "pypdf",
-    "python-dotenv",
-    "rank_bm25",
-    "sentence-transformers",
-    "transformers",
-    "langchain-openai",
-    "langchain-groq",
-    "langchain-google-genai",
+    "faiss-cpu>=1.7",
+    "langchain-openai>=1.0",
+    "langchain-community>=0.4",
+    "langchain-core>=1.0",
+    "langchain-text-splitters>=1.0",
+    "networkx>=3.0",
+    "numpy>=1.24",
+    "pypdf>=4.0",
+    "python-dotenv>=1.0",
+    "bm25s>=0.2",
+    "sentence-transformers>=2.7",
+    "torch>=2.0",
+    "transformers>=4.40",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "matplotlib", "jupyter", "nbconvert", "mypy", "ruff"]
-
-[project.scripts]
-sec-rag = "cli:main"
+dev = ["pytest", "pytest-cov", "mypy", "ruff", "pylint"]
+notebooks = ["jupyter", "ipykernel", "nbconvert"]
 
 [project.urls]
 Homepage = "https://github.com/nickkats1/Sec-Rag"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["rag*"]
+
+[tool.ruff]
+line-length = 90
+src = [".", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "SIM",
+    "D",
+    "RUF",
+    "N",
+    "A",
+    "C4",
+    "PT",
+    "RET",
+    "ARG",
+    "PTH",
+    "ERA",
+    "T20",
+    "TID",
+    "ICN",
+    "PIE",
+    "LOG",
+    "G",
+    "INP",
+    "SLF",
+    "S",
+    "ANN",
+]
+ignore = [
+    "D100",
+    "D104",
+    "D203",
+    "D213",
+    "D102",
+    "D105",
+    "D107",
+    # consumers name the retriever interface with the Retriever protocol, but
+    # the registry still forwards **kwargs to constructors that differ per
+    # strategy, and a sentence-transformers CrossEncoder carries no stubs.
+    "ANN401",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"rag/__main__.py" = [
+    "T20",  # a command-line entry point writes its results to stdout
+]
+"tests/*" = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "S101",    # asserts are the point of a test
+    "S603",    # some tests spawn a fresh interpreter to check import-time behavior
+    "ANN",     # test functions don't need annotations
+    "ARG",     # fakes/stubs deliberately ignore arguments
+    "INP001",  # tests are not an importable package
+    "SLF001",  # tests may poke at private attributes
+]
+
+[tool.ruff.lint.flake8-annotations]
+# get_retriever forwards **kwargs to a registry of constructors with different
+# signatures; there is no type more precise than Any to give them.
+allow-star-arg-any = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.mypy]
-files = ["src", "tests"]
+files = ["rag", "tests"]
 exclude = ["venv"]
+# tests/ mirrors rag/ without __init__.py files, so mypy has to map paths to
+# module names itself and needs the package root spelled out.
+explicit_package_bases = true
+mypy_path = "."
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
 
 [[tool.mypy.overrides]]
-module = ["rank_bm25", "faiss"]
+# networkx ships no stubs.
+module = ["bm25s", "docx2txt", "faiss", "networkx", "networkx.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["rag.*"]
+disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-q"
+# importlib mode: tests/ mirrors rag/ without __init__.py files, and the default
+# prepend mode would require every test basename to be globally unique.
+addopts = ["-q", "--import-mode=importlib", "--strict-config", "--strict-markers"]
+xfail_strict = true
+filterwarnings = [
+    "error::DeprecationWarning:rag",
+    "error::DeprecationWarning:tests",
+    "error::PendingDeprecationWarning:rag",
+    "error::PendingDeprecationWarning:tests",
+    "ignore:`langchain-community` is being sunset:DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["rag"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+# the retriever and generator Protocols have `...` bodies, so these lines are
+# unreachable rather than untested.
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "^\\s*\\.\\.\\.$",
+]

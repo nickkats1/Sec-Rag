@@ -10,6 +10,8 @@ __pycache__/
 
 # Virtual Environments
 *.env
+# `*.env` does not match a file named exactly `.env`, which holds the real API keys.
+.env
 .venv
 env/
 venv/
@@ -65,5 +67,27 @@ Desktop.ini
 
 *.ini.bak
 
-# Local data (large PDFs)
-data/
+# Local data (large PDFs). Anchored: an unrooted `data/` would also match rag/data/,
+# and ruff respects .gitignore, so that package would be silently unlinted.
+/data/
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Ruff / mypy caches
+.ruff_cache/
+.mypy_cache/
+
+# HuggingFace / sentence-transformers model download cache
+.cache/
+
+# ML experiment artifacts (embeddings, checkpoints, pickle dumps)
+*.pkl
+*.npy
+*.h5
+*.hdf5
+*.ckpt
+
+# Claude Code machine-local settings (shared config lives in .claude/settings.json)
+.claude/settings.local.json
