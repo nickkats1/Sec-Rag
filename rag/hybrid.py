@@ -19,8 +19,8 @@ class HybridRetriever:
         self,
         bm25: BM25Retriever | None = None,
         dense: DenseRetriever | None = None,
-        bm25_weight: float = 1.0,
-        dense_weight: float = 1.0,
+        bm25_weight: float = 0.4,
+        dense_weight: float = 0.6,
         candidates: int = 40,
         rrf_k: int = 60,
     ) -> None:
