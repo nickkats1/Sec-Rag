@@ -4,6 +4,8 @@ import pytest
 from langchain_core.documents import Document
 from pypdf import PdfWriter
 
+from rag.metrics import EvalExample
+
 
 class ScriptedGenerator:
     """Generator double handing back canned replies, so no test calls a model.
@@ -151,3 +153,15 @@ def same_page_docs() -> list[Document]:
             metadata={"source": "10k.pdf", "page": 2},
         ),
     ]
+
+
+@pytest.fixture
+def ranked_ids():
+    """A ranked result list and the ids that are relevant to it."""
+    return ["a", "x", "b", "y"], {"a", "b", "c"}
+
+
+@pytest.fixture
+def eval_examples() -> list[EvalExample]:
+    """One question answered on page 1 and one answered on no indexed page."""
+    return [EvalExample("first", {1}), EvalExample("missing", {9})]
